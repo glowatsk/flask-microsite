@@ -1,14 +1,16 @@
-from flask import render_template
-from app import app
-from app.forms import LoginForm
-from flask_login import current_user, logout_user, login_user, login_required
-from app.models import User, Post
-from flask import request, flash, redirect, url_for, g, jsonify, current_app
-from werkzeug.urls import url_parse
-from app import db
-from app.forms import RegistrationFrom, EditProfileForm, PostForm, ResetPasswordRequestForm
-from app.email import send_password_reset_email
 from datetime import datetime
+
+from flask import (current_app, flash, g, jsonify, redirect, render_template,
+                   request, url_for)
+from flask_login import current_user, login_required, login_user, logout_user
+from werkzeug.urls import url_parse
+
+from app import app, db
+from app.email import send_password_reset_email
+from app.forms import (EditProfileForm, LoginForm, PostForm, RegistrationFrom,
+                       ResetPasswordForm, ResetPasswordRequestForm, PostForm)
+from app.models import Post, User
+
 
 @app.before_request
 def before_request():
@@ -157,7 +159,9 @@ def reset_password_request():
             send_password_reset_email(user)
         flash('Check your email for the instructions to reset your password')
         return redirect(url_for('login'))
-    return render_template('reset_password_request.html', title='Reset Password', form=form)
+    return render_template('reset_password_request.html',
+                           title='Reset Password', form=form)
+
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
@@ -170,6 +174,6 @@ def reset_password(token):
     if form.validate_on_submit():
         user.set_password(form.password.data)
         db.session.commit()
-        flash('Your password has been successfully changed.')
+        flash('Your password has been reset.')
         return redirect(url_for('login'))
     return render_template('reset_password.html', form=form)
